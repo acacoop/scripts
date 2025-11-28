@@ -27,7 +27,7 @@ GH_BRANCH_DEV="dev"
 GH_BRANCH_TEST="test"
 GH_BRANCH_PROD="main"
 
-NODE_MAJOR_VERSION="24"
+NODE_MAJOR_VERSION="22"
 SQL_ADMIN_PASSWORD="$(sql_admin_pw)"
 
 # =================== MAIN ===================
@@ -39,7 +39,7 @@ create_env () {
 
   # ---------- RESOURCE NAMES ----------
   RG="RSG_PortalProveedores"
-  RG_NETWORKING="RSG_Networking_Dev"0
+  RG_NETWORKING="RSG_Networking_Dev"
 
   ASP_API="asp-proveedores-api-${ENV}"
   APP_API="app-proveedores-api-${ENV}"
@@ -54,13 +54,14 @@ create_env () {
   PE_SQL="pe-sql-proveedores-${ENV}"
   PDZ_SQL="pdz-sql-${ENV}"
 
-  KV="kv-proveedores-${ENV}"
+  # KV="kv-proveedores-${ENV}"
 
   ST_ACCOUNT="stproveedores${ENV}${SUFFIX}"
   ST_CONTAINER="uploads"
 
   SWA="swa-proveedores-${ENV}"
   SWA_REPO="https://github.com/${GH_ORG}/${GH_REPO_FRONTEND}"
+  
   LAW="law-proveedores-${ENV}"
 
   # ---------- RESOURCE GROUP ----------
@@ -71,7 +72,7 @@ create_env () {
   az monitor log-analytics workspace create -g "$RG" -n "$LAW" -l "$LOCATION" >/dev/null
 
   # ---------- KEY VAULT ----------
-  az keyvault create -g "$RG" -n "$KV" -l "$LOCATION" --enable-rbac-authorization true >/dev/null
+  # az keyvault create -g "$RG" -n "$KV" -l "$LOCATION" --enable-rbac-authorization true >/dev/null
 
   # ---------- APP SERVICE PLAN (API) ----------
   az appservice plan show -g "$RG" -n "$ASP_API" >/dev/null 2>&1 || \
@@ -177,10 +178,9 @@ create_env () {
     STORAGE_CONTAINER_NAME="$ST_CONTAINER" >/dev/null
 
   # ---------- STATIC WEB APP (ADMIN) ----------
-  if [[ "$ENV" == "test" ]]; then SWA_BRANCH="$GH_BRANCH_TEST"; else SWA_BRANCH="$GH_BRANCH_PROD"; fi
   az staticwebapp show -g "$RG" -n "$SWA" >/dev/null 2>&1 || \
   az staticwebapp create -g "$RG" -n "$SWA" -l "$LOCATION" \
-    --sku $SWA_SKU --source "$SWA_REPO" --branch "$SWA_BRANCH" --login-with-github >/dev/null
+    --sku $SWA_SKU --source "$SWA_REPO" --branch "$BRANCH" --login-with-github >/dev/null
 
   # ---------- TAGS ----------
   az tag create --resource-id "$(az group show -n "$RG" --query id -o tsv)" --tags app=proveedores env="$ENV" >/dev/null
@@ -188,7 +188,9 @@ create_env () {
   echo "RG: $RG"
   echo "API: $APP_API | SQL: $SQL_SERVER / $SQL_DB"
   echo "SWA(admin): $SWA"
-  echo "KV: $KV | LAW: $LAW | VNET: $VNET"
+  # echo "KV: $KV"
+  echo "LAW: $LAW"
+  echo "VNET: $VNET"
   echo "Storage: $ST_ACCOUNT (container: $ST_CONTAINER)"
   echo
 }
